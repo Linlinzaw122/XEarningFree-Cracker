@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raj Treder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Full-screen particle animation */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Glowing red stroked LinearLayout */
+        .glowing-box {
+            width: 90%;
+            margin: 20px auto;
+            padding: 10px;
+            border: 4px solid red;
+            box-shadow: 0 0 15px red;
+            border-radius: 10px;
+        }
+
+        /* TextView styles */
+        .textview {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px black;
+            margin: 10px;
+            padding: 5px;
+        }
+
+        /* ListView styles */
+        #listView {
+            width: 90%;
+            height: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 2px solid white;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .list-item {
+            padding: 5px;
+            border-bottom: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Particle Animation Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Glowing Stroke Container -->
+    <div class="glowing-box">
+        <div id="textview1" class="textview">Raj Treder</div>
+        <div id="textview2" class="textview">Period: Loading...</div>
+        <div id="textview3" class="textview">00 : 00</div>
+        <div id="textview4" class="textview">TextView4</div>
+    </div>
+
+    <!-- ListView -->
+    <div id="listView"></div>
+
+    <script>
+        // Particle Animation
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+
+        class Particle {
+            constructor(x, y, speedX, speedY, size) {
+                this.x = x;
+                this.y = y;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.size = size;
+                this.color = "rgba(255, 0, 0, 0.8)"; // Glowing red
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.02;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                let size = Math.random() * 4 + 1;
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let speedX = (Math.random() - 0.5) * 2;
+                let speedY = (Math.random() - 0.5) * 2;
+                particles.push(new Particle(x, y, speedX, speedY, size));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // Timer and Auto-Updating Period Logic
+        function updateTimerAndPeriod() {
+            let now = new Date();
+            let seconds = now.getUTCSeconds();
+            let remainingSeconds = 60 - seconds;
+            let minutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+
+            let periodNumber = `${now.getUTCFullYear()}${(now.getUTCMonth() + 1).toString().padStart(2, '0')}${now.getUTCDate().toString().padStart(2, '0')}1000${10001 + minutes}`;
+            document.getElementById('textview2').innerText = `Period: ${periodNumber}`;
+
+            let formattedTime = `   ${String(remainingSeconds).padStart(2, '0')}  :  00`.replace(/(?<=\d)(?=\d)/g, " ");
+            document.getElementById('textview3').innerText = formattedTime;
+
+            // Randomize BIG or SMALL at the right time
+            if (remainingSeconds === 1) {
+                let randomResult = Math.random() > 0.5 ? "BIG" : "SMALL";
+                document.getElementById('textview3').innerText = randomResult;
+
+                // Append to ListView
+                let listView = document.getElementById('listView');
+                let newItem = document.createElement('div');
+                newItem.className = 'list-item';
+                newItem.innerText = `Period ${periodNumber}: ${randomResult}`;
+                listView.prepend(newItem);
+            }
+        }
+
+        setInterval(updateTimerAndPeriod, 1000);
+
+        // Click Event to Show "Please wait for next period"
+        document.body.addEventListener('click', function() {
+            let seconds = new Date().getUTCSeconds();
+            if (seconds !== 59) {
+                document.getElementById('textview3').innerText = "Please wait for next period";
+            }
+        });
+
+    </script>
+</body>
+</html>
